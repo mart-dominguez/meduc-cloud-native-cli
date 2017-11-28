@@ -3,6 +3,8 @@ import { Producto } from './model/producto';
 import { Observable } from 'rxjs/Observable'
 import { ProductoAbstractService } from './producto.abstract.service';
 import { HttpClient } from '@angular/common/http';
+import { Subject } from 'rxjs/Subject';
+import 'rxjs/Rx';
 
 @Injectable()
 export class ProductoHttpService extends ProductoAbstractService {
@@ -13,12 +15,21 @@ export class ProductoHttpService extends ProductoAbstractService {
     super();
   }
 
+  private productoUpdated = new Subject<Producto>();  
+
   agregarProducto(producto: Producto): Observable<any> {
-    return this.http.post("/api2/producto", producto);
+    return  this.http.post("/api2/producto", producto).
+          flatMap(z => {
+            console.log(z);
+            this.productoUpdated.next(producto);
+            return Observable.of(z);      
+          });
   }
+
   getProductos(): Observable<Producto[]> {
     return this.http.get<Producto[]>("/api2/producto");
   }
+
   buscarPorId(id: number): Observable<Producto> {
     throw new Error("Method not implemented.");
   }
@@ -29,4 +40,7 @@ export class ProductoHttpService extends ProductoAbstractService {
     throw new Error("Method not implemented.");
   }
 
+  getProductoUpdated():Subject<Producto>{
+    return this.productoUpdated;
+  }
 }
